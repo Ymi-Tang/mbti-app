@@ -114,19 +114,29 @@
   }
 
   function finishQuiz() {
-    const { type, dims } = scoreQuiz();
-    const code = encodeResult(type, dims);
-    const params = { r: code };
-    if (invitedPartner) { params.p = invitedPartner; invitedPartner = null; }
-    history.replaceState(null, '', makeUrl(params));
-    if (params.p) { showMatch(code, params.p); }
-    else { renderResult(code, false); }
+    try {
+      const { type, dims } = scoreQuiz();
+      console.log('finishQuiz: type=' + type + ' dims=' + JSON.stringify(dims));
+      const code = encodeResult(type, dims);
+      console.log('finishQuiz: code=' + code.substring(0, 30) + '...');
+      const params = { r: code };
+      if (invitedPartner) { params.p = invitedPartner; invitedPartner = null; }
+      history.replaceState(null, '', makeUrl(params));
+      if (params.p) { showMatch(code, params.p); }
+      else { renderResult(code, false); }
+    } catch (e) {
+      console.error('finishQuiz error:', e);
+      var box = document.getElementById('errBox');
+      if (box) { box.style.display = 'block'; box.innerHTML = '<b>finishQuiz 错误:</b> ' + e.message + '<br><b>堆栈:</b> ' + (e.stack||'').substring(0,500); }
+    }
   }
 
   /* ---------- 结果页 ---------- */
   function renderResult(code, invited) {
+    try {
     const data = decodeResult(code);
-    if (!data || !TYPES[data.type]) { showStart(); return; }
+    console.log('renderResult: code=' + code.substring(0,20) + ' data=' + JSON.stringify(data));
+    if (!data || !TYPES[data.type]) { console.log('renderResult: data invalid or type not found, going to start'); showStart(); return; }
     const t = TYPES[data.type];
 
     // 身份条
@@ -163,6 +173,12 @@
     $('btnRetest').textContent = invited ? '我也来测一次' : '再测一次';
 
     showView('view-result');
+    console.log('renderResult: done, view switched');
+    } catch (e) {
+      console.error('renderResult error:', e);
+      var box = document.getElementById('errBox');
+      if (box) { box.style.display = 'block'; box.innerHTML = '<b>renderResult 错误:</b> ' + e.message + '<br><b>堆栈:</b> ' + (e.stack||'').substring(0,500); }
+    }
   }
 
   /* ---------- 匹配页 ---------- */
