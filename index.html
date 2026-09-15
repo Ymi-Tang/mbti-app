@@ -119,8 +119,22 @@
   <!-- ============ 提示条 ============ -->
   <div class="toast" id="toast" hidden></div>
 
+  <!-- ============ 调试错误显示 ============ -->
+  <div id="errBox" style="display:none;position:fixed;top:10px;left:10px;right:10px;z-index:999;background:#fff3cd;border:2px solid #856404;border-radius:12px;padding:14px;font-size:13px;color:#856404;font-family:monospace;max-height:40vh;overflow:auto;"></div>
+
 </main>
 
+<script>
+// 全局错误捕获——如果有JS错误，直接显示在页面上
+window.onerror = function(msg, url, line, col, err) {
+  var box = document.getElementById('errBox');
+  if (box) {
+    box.style.display = 'block';
+    box.innerHTML = '<b>错误:</b> ' + msg + '<br><b>位置:</b> ' + (url||'') + ':' + line + ':' + col + '<br><b>堆栈:</b> ' + (err && err.stack ? err.stack.substring(0,500) : 'N/A');
+  }
+  return false;
+};
+</script>
 <script src="data.js"></script>
 <script src="app.js"></script>
 </body>
