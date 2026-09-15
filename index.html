@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="MBTI 极速测：3 分钟 20 题，解锁你的隐藏人格。仅供娱乐，非专业心理测评。">
+<title>MBTI 极速测 · 3分钟解锁你的隐藏人格</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<main id="app">
+
+  <!-- ============ 开始页 ============ -->
+  <section id="view-start" class="view is-active">
+    <div class="start-inner">
+      <div class="brand-ribbon" aria-hidden="true">
+        <i style="background:#FF7A35"></i><i style="background:#2E9E5B"></i>
+        <i style="background:#FF4D6D"></i><i style="background:#24232A"></i>
+      </div>
+      <p class="eyebrow">20 题 · 约 3 分钟 · 免登录</p>
+      <h1 class="hero-title">MBTI<br>极速测</h1>
+      <p class="hero-sub">你是 i 人还是 e 人？<br>16 种人格，总有一款是你。</p>
+
+      <div class="portrait-grid" id="startGrid" aria-hidden="true"></div>
+
+      <button class="btn btn-primary btn-lg" id="btnStart" type="button">开始测试</button>
+      <p class="disclaimer">测评结果仅供娱乐参考，非专业心理评估</p>
+    </div>
+  </section>
+
+  <!-- ============ 测评页 ============ -->
+  <section id="view-quiz" class="view">
+    <header class="quiz-head">
+      <div class="quiz-meta">
+        <span class="quiz-count" id="quizCount">Q 1 / 20</span>
+        <span class="quiz-dim" id="quizDim">E / I</span>
+      </div>
+      <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+    </header>
+
+    <div class="quiz-body">
+      <h2 class="quiz-q" id="quizQ"></h2>
+      <div class="quiz-opts">
+        <button class="opt" id="optA" type="button"><span class="opt-tag">A</span><span class="opt-text"></span></button>
+        <button class="opt" id="optB" type="button"><span class="opt-tag">B</span><span class="opt-text"></span></button>
+      </div>
+      <button class="btn btn-ghost" id="btnPrev" type="button">← 上一题</button>
+    </div>
+  </section>
+
+  <!-- ============ 结果页 ============ -->
+  <section id="view-result" class="view">
+    <div class="result-inner">
+      <div class="invite-banner" id="inviteBanner" style="display:none">这是 TA 的人格卡片 — 测出你的，看看你们匹配度</div>
+      <div class="identity-ribbon" id="resultRibbon" aria-hidden="true"></div>
+      <div class="result-top">
+        <img id="resultPortrait" class="portrait-lg" alt="人格形象">
+        <p class="result-letters" id="resultLetters"></p>
+        <p class="result-name" id="resultName"></p>
+        <p class="result-motto" id="resultMotto"></p>
+      </div>
+
+      <div class="dims" id="resultDims"></div>
+
+      <div class="panel">
+        <h3 class="panel-title">性格亮点</h3>
+        <ul class="highlights" id="resultHighlights"></ul>
+      </div>
+
+      <div class="panel">
+        <h3 class="panel-title">同款名人</h3>
+        <div class="chips" id="resultCelebs"></div>
+      </div>
+
+      <div class="panel">
+        <h3 class="panel-title">天赋职业</h3>
+        <div class="chips" id="resultJobs"></div>
+      </div>
+
+      <div class="result-actions">
+        <button class="btn btn-primary btn-block" id="btnShare" type="button">生成分享卡片</button>
+        <button class="btn btn-outline btn-block" id="btnInvite" type="button">邀请 TA 来测 · 看匹配度</button>
+        <button class="btn btn-ghost btn-block" id="btnRetest" type="button">再测一次</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 匹配页 ============ -->
+  <section id="view-match" class="view">
+    <div class="match-inner">
+      <h2 class="match-title">你们的性格 CP 报告</h2>
+      <div class="match-pair">
+        <div class="pair-card" id="pairCardMe"></div>
+        <span class="pair-vs">×</span>
+        <div class="pair-card" id="pairCardFriend"></div>
+      </div>
+
+      <div class="match-score" id="matchScore"></div>
+      <p class="match-line" id="matchLine"></p>
+
+      <div class="match-actions">
+        <button class="btn btn-primary btn-block" id="btnMatchShare" type="button">生成双人分享卡片</button>
+        <button class="btn btn-ghost btn-block" id="btnMatchRetest" type="button">我也再测一次</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 分享弹层 ============ -->
+  <div class="modal" id="shareModal" hidden>
+    <div class="modal-mask" id="shareMask"></div>
+    <div class="modal-body">
+      <img id="shareImg" class="share-img" alt="分享卡片">
+      <p class="share-tip">长按图片保存，或截图发送给朋友</p>
+      <button class="btn btn-primary btn-block" id="btnShareDone" type="button">完成</button>
+    </div>
+  </div>
+
+  <!-- ============ 提示条 ============ -->
+  <div class="toast" id="toast" hidden></div>
+
+</main>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
