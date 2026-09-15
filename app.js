@@ -47,7 +47,10 @@
 
   /* ---------- 状态 ---------- */
   let quiz = { answers: [], idx: 0 };
-  let invitedPartner = null; // 从邀请链接进入时，记下邀请人(伙伴)的 code
+  let invitedPartner = null;
+  let isTransitioning = false; // 防止快速连点导致跳题
+  let lastResult = null; // 存储最近一次结果 { type, dims }
+  let lastMatch = null; // 存储最近一次匹配 { me: {type,dims}, fr: {type,dims} }
 
   /* ---------- 开始页 ---------- */
   function showStart() {
@@ -61,6 +64,7 @@
 
   function startQuiz() {
     quiz = { answers: [], idx: 0 };
+    isTransitioning = false;
     renderQuiz();
   }
 
@@ -78,18 +82,22 @@
   }
 
   function choose(side) {
+    if (isTransitioning) return; // 防止快速连点
+    isTransitioning = true;
     quiz.answers[quiz.idx] = side;
     const el = side === 0 ? $('optA') : $('optB');
     el.classList.add('flash');
-    setTimeout(() => el.classList.remove('flash'), 200);
     setTimeout(() => {
+      el.classList.remove('flash');
       if (quiz.idx < QUESTIONS.length - 1) {
         quiz.idx++;
         renderQuiz();
+        isTransitioning = false;
       } else {
         finishQuiz();
+        // finishQuiz 后不需要重置 isTransitioning，因为已经离开测评页
       }
-    }, 240);
+    }, 200);
   }
 
   function prevQuestion() {
@@ -116,14 +124,16 @@
   function finishQuiz() {
     try {
       const { type, dims } = scoreQuiz();
-      console.log('finishQuiz: type=' + type + ' dims=' + JSON.stringify(dims));
+      lastResult = { type, dims };
       const code = encodeResult(type, dims);
-      console.log('finishQuiz: code=' + code.substring(0, 30) + '...');
-      const params = { r: code };
-      if (invitedPartner) { params.p = invitedPartner; invitedPartner = null; }
-      history.replaceState(null, '', makeUrl(params));
-      if (params.p) { showMatch(code, params.p); }
-      else { renderResult(code, false); }
+      // 不使用 history.replaceState，避免页面重新加载
+      // 只在需要分享/邀请时才生成 URL
+      if (invitedPartner) {
+        showMatch(code, invitedPartner);
+        invitedPartner = null;
+      } else {
+        renderResult(code, false);
+      }
     } catch (e) {
       console.error('finishQuiz error:', e);
       var box = document.getElementById('errBox');
@@ -135,8 +145,7 @@
   function renderResult(code, invited) {
     try {
     const data = decodeResult(code);
-    console.log('renderResult: code=' + code.substring(0,20) + ' data=' + JSON.stringify(data));
-    if (!data || !TYPES[data.type]) { console.log('renderResult: data invalid or type not found, going to start'); showStart(); return; }
+    if (!data || !TYPES[data.type]) { showStart(); return; }
     const t = TYPES[data.type];
 
     // 身份条
@@ -173,7 +182,6 @@
     $('btnRetest').textContent = invited ? '我也来测一次' : '再测一次';
 
     showView('view-result');
-    console.log('renderResult: done, view switched');
     } catch (e) {
       console.error('renderResult error:', e);
       var box = document.getElementById('errBox');
@@ -199,6 +207,8 @@
     const me = decodeResult(meCode);
     const fr = decodeResult(partnerCode);
     if (!me || !fr || !TYPES[me.type] || !TYPES[fr.type]) { showStart(); return; }
+
+    lastMatch = { me: { type: me.type, dims: me.d }, fr: { type: fr.type, dims: fr.d } };
 
     $('pairCardMe').innerHTML = pairCardHTML(me.type);
     $('pairCardFriend').innerHTML = pairCardHTML(fr.type);
@@ -422,22 +432,35 @@
     $('btnPrev').addEventListener('click', prevQuestion);
 
     $('btnShare').addEventListener('click', async () => {
-      const code = new URLSearchParams(location.search).get('r');
-      const d = decodeResult(code);
-      if (d) openShareCard(d.type, d.d, 'single');
+      if (lastResult) {
+        openShareCard(lastResult.type, lastResult.dims, 'single');
+      } else {
+        const code = new URLSearchParams(location.search).get('r');
+        const d = decodeResult(code);
+        if (d) openShareCard(d.type, d.d, 'single');
+      }
     });
 
     $('btnMatchShare').addEventListener('click', async () => {
-      const q = new URLSearchParams(location.search);
-      const me = decodeResult(q.get('r')), fr = decodeResult(q.get('p'));
-      if (me && fr) openShareCard(me.type, me.d, 'pair', fr.type);
+      if (lastMatch && lastMatch.me && lastMatch.fr) {
+        openShareCard(lastMatch.me.type, lastMatch.me.dims, 'pair', lastMatch.fr.type);
+      } else {
+        const q = new URLSearchParams(location.search);
+        const me = decodeResult(q.get('r')), fr = decodeResult(q.get('p'));
+        if (me && fr) openShareCard(me.type, me.d, 'pair', fr.type);
+      }
     });
 
     $('btnShareDone').addEventListener('click', () => { $('shareModal').hidden = true; });
     $('shareMask').addEventListener('click', () => { $('shareModal').hidden = true; });
 
     $('btnInvite').addEventListener('click', () => {
-      const code = new URLSearchParams(location.search).get('r');
+      var code = '';
+      if (lastResult) {
+        code = encodeResult(lastResult.type, lastResult.dims);
+      } else {
+        code = new URLSearchParams(location.search).get('r') || '';
+      }
       if (code) copyText(makeUrl({ r: code, inv: 1 }), '邀请链接已复制，发给 TA 吧');
     });
 
